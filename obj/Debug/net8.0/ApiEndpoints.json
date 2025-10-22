@@ -1,0 +1,142 @@
+[
+  {
+    "ContainingType": "NecesidadesCapacitacion.Controllers.AuthController",
+    "Method": "GetRolesAsync",
+    "RelativePath": "api/Auth/GetRoles",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "NecesidadesCapacitacion.Controllers.AuthController",
+    "Method": "Login",
+    "RelativePath": "api/Auth/Login",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "NecesidadesCapacitacion.Dtos.LoginRequestDto",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "NecesidadesCapacitacion.Controllers.AuthController",
+    "Method": "Logout",
+    "RelativePath": "api/Auth/Logout",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "NecesidadesCapacitacion.Controllers.AuthController",
+    "Method": "RefreshToken",
+    "RelativePath": "api/Auth/Refresh",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "refreshToken",
+        "Type": "System.String",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "NecesidadesCapacitacion.Controllers.AuthController",
+    "Method": "Register",
+    "RelativePath": "api/Auth/Register",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "NecesidadesCapacitacion.Dtos.RegisterRequestDto",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "NecesidadesCapacitacion.Controllers.TrainingNeedController",
+    "Method": "Create",
+    "RelativePath": "api/TrainingNeed/Create",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "trainingNeeds",
+        "Type": "NecesidadesCapacitacion.Dtos.TrainingNeedsDTO",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "NecesidadesCapacitacion.Controllers.TrainingNeedController",
+    "Method": "Delete",
+    "RelativePath": "api/TrainingNeed/Delete/{id}",
+    "HttpMethod": "DELETE",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "NecesidadesCapacitacion.Controllers.TrainingNeedController",
+    "Method": "GetPriority",
+    "RelativePath": "api/TrainingNeed/GetPriority",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "NecesidadesCapacitacion.Controllers.TrainingNeedController",
+    "Method": "GetTrainingNeedAsync",
+    "RelativePath": "api/TrainingNeed/GetTrainingNeed",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "NecesidadesCapacitacion.Controllers.TrainingNeedController",
+    "Method": "GetTrainingNeeds",
+    "RelativePath": "api/TrainingNeed/GetTrainingNeeds",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "NecesidadesCapacitacion.Controllers.TrainingNeedController",
+    "Method": "GetTrainingNeedsByUser",
+    "RelativePath": "api/TrainingNeed/GetTrainingNeedsByUser",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  }
+]
