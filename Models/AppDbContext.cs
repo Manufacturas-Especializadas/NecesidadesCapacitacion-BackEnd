@@ -13,6 +13,8 @@ public partial class AppDbContext : DbContext
 
     public virtual DbSet<Roles> Roles { get; set; }
 
+    public virtual DbSet<TnCategory> TnCategory { get; set; }
+
     public virtual DbSet<TnPriority> TnPriority { get; set; }
 
     public virtual DbSet<TrainingNeeds> TrainingNeeds { get; set; }
@@ -34,6 +36,16 @@ public partial class AppDbContext : DbContext
                 .HasColumnName("name");
         });
 
+        modelBuilder.Entity<TnCategory>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK__TnCatego__3214EC070055EE62");
+
+            entity.Property(e => e.Name)
+                .HasMaxLength(70)
+                .IsUnicode(false)
+                .HasColumnName("name");
+        });
+
         modelBuilder.Entity<TnPriority>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PK__TnPriori__3214EC07E0C99849");
@@ -46,8 +58,9 @@ public partial class AppDbContext : DbContext
 
         modelBuilder.Entity<TrainingNeeds>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__Training__3214EC076F1FF228");
+            entity.HasKey(e => e.Id).HasName("PK__Training__3214EC07D99B4F1F");
 
+            entity.Property(e => e.CategoryId).HasColumnName("categoryId");
             entity.Property(e => e.CurrentPerformance)
                 .HasMaxLength(150)
                 .IsUnicode(false)
@@ -65,6 +78,18 @@ public partial class AppDbContext : DbContext
                 .IsUnicode(false)
                 .HasColumnName("presentNeed");
             entity.Property(e => e.PriorityId).HasColumnName("priorityId");
+            entity.Property(e => e.ProviderAdmin1)
+                .HasMaxLength(300)
+                .IsUnicode(false)
+                .HasColumnName("providerAdmin1");
+            entity.Property(e => e.ProviderAdmin2)
+                .HasMaxLength(300)
+                .IsUnicode(false)
+                .HasColumnName("providerAdmin2");
+            entity.Property(e => e.ProviderUser)
+                .HasMaxLength(200)
+                .IsUnicode(false)
+                .HasColumnName("providerUser");
             entity.Property(e => e.QualityObjective)
                 .HasMaxLength(250)
                 .IsUnicode(false)
@@ -79,15 +104,20 @@ public partial class AppDbContext : DbContext
                 .HasColumnName("suggestedTrainingCourse");
             entity.Property(e => e.UserId).HasColumnName("userId");
 
+            entity.HasOne(d => d.Category).WithMany(p => p.TrainingNeeds)
+                .HasForeignKey(d => d.CategoryId)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("FK__TrainingN__categ__214BF109");
+
             entity.HasOne(d => d.Priority).WithMany(p => p.TrainingNeeds)
                 .HasForeignKey(d => d.PriorityId)
                 .OnDelete(DeleteBehavior.Cascade)
-                .HasConstraintName("FK__TrainingN__prior__3E1D39E1");
+                .HasConstraintName("FK__TrainingN__prior__1F63A897");
 
             entity.HasOne(d => d.User).WithMany(p => p.TrainingNeeds)
                 .HasForeignKey(d => d.UserId)
                 .OnDelete(DeleteBehavior.Cascade)
-                .HasConstraintName("FK__TrainingN__userI__3F115E1A");
+                .HasConstraintName("FK__TrainingN__userI__2057CCD0");
         });
 
         modelBuilder.Entity<Users>(entity =>
