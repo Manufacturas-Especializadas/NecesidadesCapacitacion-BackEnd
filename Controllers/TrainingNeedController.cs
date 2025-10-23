@@ -52,6 +52,22 @@ namespace NecesidadesCapacitacion.Controllers
             return Ok(list);
         }
 
+        [HttpGet]
+        [Route("GetCategory")]
+        public async Task<IActionResult> GetCategory()
+        {
+            var category = await _context.TnCategory
+                                .AsNoTracking()
+                                .ToListAsync();
+
+            if(category == null)
+            {
+                return BadRequest("List empty");
+            }
+
+            return Ok(category);
+        }
+
         [Authorize]
         [HttpGet]
         [Route("GetTrainingNeeds")]
@@ -76,6 +92,8 @@ namespace NecesidadesCapacitacion.Controllers
                             t.CurrentPerformance,
                             t.ExpectedPerformance,
                             Priority = t.Priority.Name,
+                            Category = t.Category.Name,
+                            t.ProviderUser
                         })
                         .AsNoTracking()
                         .ToListAsync();
@@ -154,10 +172,14 @@ namespace NecesidadesCapacitacion.Controllers
                 SuggestedTrainingCourse = trainingNeeds.SuggestedTrainingCourse,
                 QualityObjective = trainingNeeds.QualityObjective,
                 CurrentPerformance = trainingNeeds.CurrentPerformance,
+                ProviderUser = trainingNeeds.ProviderUser,
+                ProviderAdmin1 = trainingNeeds.ProviderAdmin1,
+                ProviderAdmin2 = trainingNeeds.ProviderAdmin2,
                 ExpectedPerformance = trainingNeeds.ExpectedPerformance,
                 RegistrationDate = trainingNeeds.RegistrationDate ?? DateTime.UtcNow,
                 PriorityId = trainingNeeds.PriorityId,
-                UserId = userId
+                UserId = userId,
+                CategoryId = trainingNeeds.CategoryId
             };
 
             _context.TrainingNeeds.Add(newTrainingNeeds);
