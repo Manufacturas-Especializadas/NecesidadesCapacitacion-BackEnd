@@ -4,6 +4,7 @@ using Microsoft.IdentityModel.Tokens;
 using NecesidadesCapacitacion.Models;
 using NecesidadesCapacitacion.Services;
 using System.Diagnostics;
+using System.Security.Claims;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -48,31 +49,22 @@ builder.Services.AddSwaggerGen(c =>
 
 builder.Services.AddScoped<AuthService>();
 
-builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-    .AddJwtBearer(options =>
+builder.Services.AddAuthentication("Bearer")
+    .AddJwtBearer("Bearer", options =>
     {
+        var key = Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!);
         options.TokenValidationParameters = new TokenValidationParameters
         {
             ValidateIssuer = true,
-            ValidIssuer = builder.Configuration["Jwt:Issuer"],
-
             ValidateAudience = true,
-            ValidAudience = builder.Configuration["Jwt:Audience"],
-
             ValidateLifetime = true,
-
             ValidateIssuerSigningKey = true,
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!))
-        };
+            ValidIssuer = builder.Configuration["Jwt:Issuer"],
+            ValidAudience = builder.Configuration["Jwt:Audience"],
+            IssuerSigningKey = new SymmetricSecurityKey(key),
 
-        options.Events = new JwtBearerEvents
-        {
-            OnAuthenticationFailed = context =>
-            {
-                Debug.WriteLine("--- Fallo la autenticación del Token ---");
-                Debug.WriteLine("Excepción: " + context.Exception.ToString());
-                return Task.CompletedTask;
-            }
+            NameClaimType = ClaimTypes.Name,
+            RoleClaimType = ClaimTypes.Role
         };
     });
 
