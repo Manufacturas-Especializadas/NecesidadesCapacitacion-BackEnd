@@ -14,11 +14,11 @@
 
         public string ExpectedPerformance { get; set; }
 
-        public string ProviderUser { get; set; }
+        public string? ProviderUser { get; set; }
 
-        public string ProviderAdmin1 { get; set; }
+        public string? ProviderAdmin1 { get; set; }
 
-        public string ProviderAdmin2 { get; set; }
+        public string? ProviderAdmin2 { get; set; }
 
         public DateTime? RegistrationDate { get; set; }
 
