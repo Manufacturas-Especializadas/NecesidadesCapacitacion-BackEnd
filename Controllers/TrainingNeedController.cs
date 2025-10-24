@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using NecesidadesCapacitacion.Dtos;
 using NecesidadesCapacitacion.Models;
+using NecesidadesCapacitacion.Services;
 using System.Security.Claims;
 
 namespace NecesidadesCapacitacion.Controllers
@@ -14,10 +15,12 @@ namespace NecesidadesCapacitacion.Controllers
     public class TrainingNeedController : ControllerBase
     {
         private readonly AppDbContext _context;
+        private readonly EmailService _emailService;
 
-        public TrainingNeedController(AppDbContext context)
+        public TrainingNeedController(AppDbContext context, EmailService emailService)
         {
             _context = context;
+            _emailService = emailService;
         }
 
         [HttpGet]
@@ -303,6 +306,15 @@ namespace NecesidadesCapacitacion.Controllers
             _context.TrainingNeeds.Add(newTrainingNeeds);
             await _context.SaveChangesAsync();
 
+            try
+            {
+                await SendEmailCapacitacion(newTrainingNeeds);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error enviando correo: {ex.Message}");
+            }
+
             return Ok(new
             {
                 success = true,
@@ -354,6 +366,26 @@ namespace NecesidadesCapacitacion.Controllers
                 message = "Registro eliminado",
                 trainingId = trainingNeedId.Id
             });
+        }
+
+        private async Task SendEmailCapacitacion(TrainingNeeds training)
+        {
+            var subject = "Nuevo registro de necesidad de capacitación";
+
+            var body = $@"
+                <h3>¡Hola!</h3>
+                <p>Un usuario acaba de registrar una nueva necesidad de capacitación.</p>
+                <p>Por favor, revísala a la brevedad.</p>
+                <br/>
+                <p>Saludos,<br/>Equipo de Soporte</p>
+            ";
+
+            var recipients = new List<string>
+            {
+                "jose.lugo@mesa.ms",                
+            };
+
+            await _emailService.SendEmailAsync(recipients, subject, body);
         }
     }
 }
