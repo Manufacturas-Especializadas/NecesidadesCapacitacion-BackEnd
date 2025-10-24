@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using ClosedXML.Excel;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -66,6 +67,27 @@ namespace NecesidadesCapacitacion.Controllers
             }
 
             return Ok(category);
+        }
+
+        [HttpGet]
+        [Route("GetTrainingNeedsById/{id}")]
+        public async Task<IActionResult> GetTrainingNeedsById(int id)
+        {
+            var userClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+            if (userClaim == null || !int.TryParse(userClaim.Value, out int userId))
+            {
+                return Unauthorized(new { message = "Usuario no autenticado" });
+            }
+
+            var trainingNeed = await _context.TrainingNeeds
+                .FirstOrDefaultAsync(t => t.Id == id && t.UserId == userId);
+
+            if (trainingNeed == null)
+            {
+                return NotFound("Necesidad no encontrada o no tienes permiso.");
+            }
+
+            return Ok(trainingNeed);
         }
 
         [Authorize]
@@ -143,6 +165,102 @@ namespace NecesidadesCapacitacion.Controllers
                     : NotFound("No se encontraron necesidades agrupadas por usuario");
         }
 
+        [HttpGet]
+        [Route("DownloadExcel")]
+        public async Task<IActionResult> ExportToExcel()
+        {
+            var trainingNeeds = await _context.TrainingNeeds
+                .Select(t => new
+                {
+                    t.PresentNeed,
+                    t.PositionsOrCollaborator,
+                    t.SuggestedTrainingCourse,
+                    t.QualityObjective,
+                    t.CurrentPerformance,
+                    t.ProviderUser,
+                    t.ProviderAdmin1,
+                    t.ProviderAdmin2,
+                    t.ExpectedPerformance,
+                    t.RegistrationDate,
+                    Priority = t.Priority.Name,
+                    Category = t.Category.Name,
+                    User = t.User.Name,
+                })
+                .OrderBy(x => x.Category)
+                .AsNoTracking()
+                .ToListAsync();
+
+            using (var workBook = new XLWorkbook())
+            {
+                var workSheet = workBook.Worksheets.Add("Necesidades por Categoría");
+
+                var headers = new[]
+                {
+                    "Necesidad presente",
+                    "Nombres y puestos del colaborador a incluir",
+                    "Curso/Entrenamiento sugerido",
+                    "Objetivo de calidad / KPI",
+                    "Desempeño actual",
+                    "Desempeño esperado",
+                    "Sugerencia de proveedor del solicitante",
+                    "Prioridad",
+                    "Categoría",
+                    "Nombre del solicitante"
+                };
+
+                for (int col = 0; col < headers.Length; col++)
+                {
+                    workSheet.Cell(1, col + 1).Value = headers[col];
+                    workSheet.Cell(1, col + 1).Style.Font.Bold = true;
+                    workSheet.Cell(1, col + 1).Style.Fill.BackgroundColor = XLColor.LightGray;
+                }
+
+                int row = 2;
+                string currentCategory = null;
+
+                foreach (var item in trainingNeeds)
+                {
+                    if (currentCategory != item.Category)
+                    {
+                        currentCategory = item.Category;
+
+                        if (row > 2) row++;
+                        workSheet.Cell(row, 1).Value = $"Categoría: {currentCategory}";
+                        workSheet.Range(row, 1, row, headers.Length)
+                                 .Merge()
+                                 .Style
+                                 .Font.SetBold()
+                                 .Fill.SetBackgroundColor(XLColor.FromArgb(240, 240, 240))
+                                 .Alignment.SetHorizontal(XLAlignmentHorizontalValues.Left);
+
+                        row++;
+                    }
+
+                    workSheet.Cell(row, 1).Value = item.PresentNeed;
+                    workSheet.Cell(row, 2).Value = item.PositionsOrCollaborator;
+                    workSheet.Cell(row, 3).Value = item.SuggestedTrainingCourse;
+                    workSheet.Cell(row, 4).Value = item.QualityObjective;
+                    workSheet.Cell(row, 5).Value = item.CurrentPerformance;
+                    workSheet.Cell(row, 6).Value = item.ExpectedPerformance;
+                    workSheet.Cell(row, 7).Value = item.ProviderUser;
+                    workSheet.Cell(row, 8).Value = item.Priority;
+                    workSheet.Cell(row, 9).Value = item.Category;
+                    workSheet.Cell(row, 10).Value = item.User;
+
+                    row++;
+                }
+
+                workSheet.Columns().AdjustToContents();
+
+                var stream = new MemoryStream();
+                workBook.SaveAs(stream);
+                stream.Position = 0;
+
+                var fileName = $"NecesidadesCapacitacion_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx";
+                return File(stream, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
+            }
+        }
+
         [Authorize]
         [HttpPost]
         [Route("Create")]
@@ -190,6 +308,29 @@ namespace NecesidadesCapacitacion.Controllers
                 success = true,
                 message = "Registro existosamente creado",
                 trainingId = newTrainingNeeds.Id
+            });
+        }
+
+        [HttpPut]
+        [Route("Update/{id:int}")]
+        public async Task<IActionResult> Update([FromBody] TrainingNeedsDTO trainingNeedsDTO, int id)
+        {
+            var trainingNeeds = await _context.TrainingNeeds.FindAsync(id);
+
+            if(trainingNeeds == null)
+            {
+                return BadRequest("Id no encontrado");
+            }
+
+            trainingNeeds.ProviderAdmin1 = trainingNeedsDTO.ProviderAdmin1;
+            trainingNeeds.ProviderAdmin2 = trainingNeedsDTO.ProviderAdmin2;
+
+            await _context.SaveChangesAsync();
+
+            return Ok(new
+            {
+                success = true,
+                message = "Registro actualizado"
             });
         }
 
