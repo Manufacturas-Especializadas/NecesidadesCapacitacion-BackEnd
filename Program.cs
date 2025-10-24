@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using NecesidadesCapacitacion.Data;
 using NecesidadesCapacitacion.Models;
 using NecesidadesCapacitacion.Services;
 using System.Diagnostics;
@@ -48,6 +49,8 @@ builder.Services.AddSwaggerGen(c =>
 });
 
 builder.Services.AddScoped<AuthService>();
+builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
+builder.Services.AddSingleton<EmailService>();
 
 builder.Services.AddAuthentication("Bearer")
     .AddJwtBearer("Bearer", options =>
