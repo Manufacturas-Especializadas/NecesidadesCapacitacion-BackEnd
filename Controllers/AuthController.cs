@@ -110,6 +110,6 @@ namespace NecesidadesCapacitacion.Controllers
 
             return Ok(response);
         }
-
+        
     }
 }
