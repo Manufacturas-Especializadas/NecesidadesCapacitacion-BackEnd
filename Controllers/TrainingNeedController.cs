@@ -415,7 +415,7 @@ namespace NecesidadesCapacitacion.Controllers
 
             var recipients = new List<string>
             {
-                "jose.lugo@mesa.ms",                
+                "irene.santiago@mesa.ms",                
             };
 
             await _emailService.SendEmailAsync(recipients, subject, body);
