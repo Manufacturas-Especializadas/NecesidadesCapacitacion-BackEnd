@@ -17,6 +17,8 @@ public partial class AppDbContext : DbContext
 
     public virtual DbSet<TnPriority> TnPriority { get; set; }
 
+    public virtual DbSet<TnStatus> TnStatus { get; set; }
+
     public virtual DbSet<TrainingNeeds> TrainingNeeds { get; set; }
 
     public virtual DbSet<Users> Users { get; set; }
@@ -56,9 +58,19 @@ public partial class AppDbContext : DbContext
                 .HasColumnName("name");
         });
 
+        modelBuilder.Entity<TnStatus>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK__TnStatus__3214EC07FA8B2EEE");
+
+            entity.Property(e => e.Name)
+                .HasMaxLength(70)
+                .IsUnicode(false)
+                .HasColumnName("name");
+        });
+
         modelBuilder.Entity<TrainingNeeds>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__Training__3214EC07D99B4F1F");
+            entity.HasKey(e => e.Id).HasName("PK__Training__3214EC0777349BC6");
 
             entity.Property(e => e.CategoryId).HasColumnName("categoryId");
             entity.Property(e => e.CurrentPerformance)
@@ -98,6 +110,7 @@ public partial class AppDbContext : DbContext
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnType("datetime")
                 .HasColumnName("registrationDate");
+            entity.Property(e => e.StatusId).HasColumnName("statusId");
             entity.Property(e => e.SuggestedTrainingCourse)
                 .HasMaxLength(200)
                 .IsUnicode(false)
@@ -107,17 +120,22 @@ public partial class AppDbContext : DbContext
             entity.HasOne(d => d.Category).WithMany(p => p.TrainingNeeds)
                 .HasForeignKey(d => d.CategoryId)
                 .OnDelete(DeleteBehavior.Cascade)
-                .HasConstraintName("FK__TrainingN__categ__214BF109");
+                .HasConstraintName("FK__TrainingN__categ__29E1370A");
 
             entity.HasOne(d => d.Priority).WithMany(p => p.TrainingNeeds)
                 .HasForeignKey(d => d.PriorityId)
                 .OnDelete(DeleteBehavior.Cascade)
-                .HasConstraintName("FK__TrainingN__prior__1F63A897");
+                .HasConstraintName("FK__TrainingN__prior__27F8EE98");
+
+            entity.HasOne(d => d.Status).WithMany(p => p.TrainingNeeds)
+                .HasForeignKey(d => d.StatusId)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("FK__TrainingN__statu__2AD55B43");
 
             entity.HasOne(d => d.User).WithMany(p => p.TrainingNeeds)
                 .HasForeignKey(d => d.UserId)
                 .OnDelete(DeleteBehavior.Cascade)
-                .HasConstraintName("FK__TrainingN__userI__2057CCD0");
+                .HasConstraintName("FK__TrainingN__userI__28ED12D1");
         });
 
         modelBuilder.Entity<Users>(entity =>
