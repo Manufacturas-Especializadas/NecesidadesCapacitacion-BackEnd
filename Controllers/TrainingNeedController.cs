@@ -98,8 +98,9 @@ namespace NecesidadesCapacitacion.Controllers
                 return Unauthorized(new { message = "Usuario no autenticado" });
             }
 
+            var isAdmin = User.IsInRole("Admin");
             var trainingNeed = await _context.TrainingNeeds
-                .FirstOrDefaultAsync(t => t.Id == id && t.UserId == userId);
+                .FirstOrDefaultAsync(t => t.Id == id && (isAdmin || t.UserId == userId));
 
             if (trainingNeed == null)
             {
