@@ -366,6 +366,7 @@ namespace NecesidadesCapacitacion.Controllers
 
             trainingNeeds.ProviderAdmin1 = trainingNeedsDTO.ProviderAdmin1;
             trainingNeeds.ProviderAdmin2 = trainingNeedsDTO.ProviderAdmin2;
+            trainingNeeds.StatusId = trainingNeedsDTO.StatusId;
 
             await _context.SaveChangesAsync();
 
