@@ -11,7 +11,7 @@ public partial class TrainingNeeds
 
     public string? PositionsOrCollaborator { get; set; }
 
-    public string SuggestedTrainingCourse { get; set; }
+    public string? SuggestedTrainingCourse { get; set; }
 
     public string? QualityObjective { get; set; }
 
@@ -29,6 +29,8 @@ public partial class TrainingNeeds
 
     public int? PriorityId { get; set; }
 
+    public int? StatusId { get; set; }
+
     public int? UserId { get; set; }
 
     public int? CategoryId { get; set; }
@@ -36,6 +38,8 @@ public partial class TrainingNeeds
     public virtual TnCategory? Category { get; set; }
 
     public virtual TnPriority? Priority { get; set; }
+
+    public virtual TnStatus? Status { get; set; }
 
     public virtual Users? User { get; set; }
 }
