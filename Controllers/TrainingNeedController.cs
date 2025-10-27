@@ -73,6 +73,22 @@ namespace NecesidadesCapacitacion.Controllers
         }
 
         [HttpGet]
+        [Route("GetStatus")]
+        public async Task<IActionResult> GetStatus()
+        {
+            var status = await _context.TnStatus
+                        .AsNoTracking()
+                        .ToListAsync();
+
+            if(status == null)
+            {
+                return BadRequest("List empty");
+            }
+
+            return Ok(status);
+        }
+
+        [HttpGet]
         [Route("GetTrainingNeedsById/{id}")]
         public async Task<IActionResult> GetTrainingNeedsById(int id)
         {
@@ -116,8 +132,9 @@ namespace NecesidadesCapacitacion.Controllers
                             t.QualityObjective,
                             t.CurrentPerformance,
                             t.ExpectedPerformance,
-                            Priority = t.Priority.Name,
-                            Category = t.Category.Name,
+                            Priority = t.Priority!.Name ?? "Sin prioridad asignada",
+                            Category = t.Category!.Name ?? "Sin catagoría asignada",
+                            Status = t.Status!.Name ?? "Pendiente",
                             t.ProviderUser
                         })
                         .AsNoTracking()
@@ -269,58 +286,71 @@ namespace NecesidadesCapacitacion.Controllers
         [Route("Create")]
         public async Task<IActionResult> Create([FromBody] TrainingNeedsDTO trainingNeeds)
         {
-            if(trainingNeeds == null)
-            {
-                return BadRequest("Campos vacios");
-            }
-
-            var userClaim = User.FindFirst(ClaimTypes.NameIdentifier);
-            if(userClaim == null || !int.TryParse(userClaim.Value, out int userId))
-            {
-                return Unauthorized(new { message = "Usuario no autenticado" });
-            }
-
-            var userExists = await _context.Users.AnyAsync(u => u.Id == userId);
-            if(!userExists)
-            {
-                return Unauthorized(new { message = "Usuario no valid" });
-            }
-
-            var newTrainingNeeds = new TrainingNeeds
-            {
-                PresentNeed = trainingNeeds.PresentNeed,
-                PositionsOrCollaborator = trainingNeeds.PositionsOrCollaborator,
-                SuggestedTrainingCourse = trainingNeeds.SuggestedTrainingCourse,
-                QualityObjective = trainingNeeds.QualityObjective,
-                CurrentPerformance = trainingNeeds.CurrentPerformance,
-                ProviderUser = trainingNeeds.ProviderUser,
-                ProviderAdmin1 = trainingNeeds.ProviderAdmin1,
-                ProviderAdmin2 = trainingNeeds.ProviderAdmin2,
-                ExpectedPerformance = trainingNeeds.ExpectedPerformance,
-                RegistrationDate = trainingNeeds.RegistrationDate ?? DateTime.UtcNow,
-                PriorityId = trainingNeeds.PriorityId,
-                UserId = userId,
-                CategoryId = trainingNeeds.CategoryId
-            };
-
-            _context.TrainingNeeds.Add(newTrainingNeeds);
-            await _context.SaveChangesAsync();
-
             try
             {
-                await SendEmailCapacitacion(newTrainingNeeds);
+                if (trainingNeeds == null)
+                {
+                    return BadRequest("Campos vacíos");
+                }
+
+                var userClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+                if (userClaim == null || !int.TryParse(userClaim.Value, out int userId))
+                {
+                    return Unauthorized(new { message = "Usuario no autenticado" });
+                }
+
+                var userExists = await _context.Users.AnyAsync(u => u.Id == userId);
+                if (!userExists)
+                {
+                    return Unauthorized(new { message = "Usuario no válido" });
+                }
+
+                var newTrainingNeeds = new TrainingNeeds
+                {
+                    PresentNeed = trainingNeeds.PresentNeed,
+                    PositionsOrCollaborator = trainingNeeds.PositionsOrCollaborator,
+                    SuggestedTrainingCourse = trainingNeeds.SuggestedTrainingCourse,
+                    QualityObjective = trainingNeeds.QualityObjective,
+                    CurrentPerformance = trainingNeeds.CurrentPerformance,
+                    ProviderUser = trainingNeeds.ProviderUser,
+                    ProviderAdmin1 = trainingNeeds.ProviderAdmin1,
+                    ProviderAdmin2 = trainingNeeds.ProviderAdmin2,
+                    ExpectedPerformance = trainingNeeds.ExpectedPerformance,
+                    RegistrationDate = trainingNeeds.RegistrationDate ?? DateTime.UtcNow,
+                    PriorityId = trainingNeeds.PriorityId,
+                    StatusId = 3,
+                    UserId = userId,
+                    CategoryId = trainingNeeds.CategoryId
+                };
+
+                _context.TrainingNeeds.Add(newTrainingNeeds);
+                await _context.SaveChangesAsync();
+
+                try
+                {
+                    await SendEmailCapacitacion(newTrainingNeeds);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Error enviando correo: {ex.Message}");
+                }
+
+                return Ok(new
+                {
+                    success = true,
+                    message = "Registro exitosamente creado",
+                    trainingId = newTrainingNeeds.Id
+                });
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error enviando correo: {ex.Message}");
+                return StatusCode(500, new
+                {
+                    success = false,
+                    message = "Error interno del servidor",
+                    details = ex.ToString()
+                });
             }
-
-            return Ok(new
-            {
-                success = true,
-                message = "Registro existosamente creado",
-                trainingId = newTrainingNeeds.Id
-            });
         }
 
         [HttpPut]
@@ -357,14 +387,14 @@ namespace NecesidadesCapacitacion.Controllers
                 NotFound("Id no encontrado");
             }
 
-            _context.TrainingNeeds.Remove(trainingNeedId);
+            _context.TrainingNeeds.Remove(trainingNeedId!);
             await _context.SaveChangesAsync();
 
             return Ok(new
             {
                 success = true,
                 message = "Registro eliminado",
-                trainingId = trainingNeedId.Id
+                trainingId = trainingNeedId!.Id
             });
         }
 
