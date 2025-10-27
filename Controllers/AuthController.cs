@@ -61,14 +61,27 @@ namespace NecesidadesCapacitacion.Controllers
         [Route("Login")]
         public async Task<IActionResult> Login([FromBody] LoginRequestDto request)
         {
-            var response = await _authService.LoginAsync(request);
-
-            if (response == null)
+            try
             {
-                return Unauthorized(new { message = "Nombre, número de nómina incorrectos" });
-            }
 
-            return Ok(response);
+                var response = await _authService.LoginAsync(request);
+
+                if (response == null)
+                {
+                    return Unauthorized(new { message = "Nombre, número de nómina incorrectos" });
+                }
+
+                return Ok(response);
+            }
+            catch(Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    success = false,
+                    message = ex.Message,
+                    details = ex.ToString()
+                });
+            }
         }        
 
         [HttpPost]
