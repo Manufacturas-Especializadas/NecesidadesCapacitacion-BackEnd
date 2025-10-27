@@ -168,6 +168,7 @@ namespace NecesidadesCapacitacion.Controllers
                                 PresentNeed = t.PresentNeed,
                                 SuggestedTrainingCourse = t.SuggestedTrainingCourse,
                                 Priorirty = t.Priority.Name,
+                                Status = t.Status!.Name ?? "Pendiente",
                                 RegistrationDate = t.RegistrationDate,
                             })
                             .ToList(),
