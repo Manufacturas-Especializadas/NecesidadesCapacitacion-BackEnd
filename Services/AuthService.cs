@@ -1,5 +1,4 @@
-﻿using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using NecesidadesCapacitacion.Dtos;
 using NecesidadesCapacitacion.Models;
@@ -14,20 +13,18 @@ namespace NecesidadesCapacitacion.Services
     {
         private readonly AppDbContext _context;
         private readonly IConfiguration _configuration;
-        private readonly PasswordHasher<Users> _passwordHasher;
 
         public AuthService(AppDbContext context, IConfiguration configuration)
         {
             _context = context;
             _configuration = configuration;
-            _passwordHasher = new PasswordHasher<Users>();
         }
 
         public async Task<bool> LogoutAsync(int userId)
         {
             var user = await _context.Users.FindAsync(userId);
 
-            if(user == null)
+            if (user == null)
             {
                 return false;
             }
@@ -48,9 +45,9 @@ namespace NecesidadesCapacitacion.Services
 
             if (user == null) return null;
 
-            var result = _passwordHasher.VerifyHashedPassword(user, user.PasswordHash, request.Password);
+            bool isValidPassword = BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash);
 
-            if (result == PasswordVerificationResult.Failed) return null;
+            if (!isValidPassword) return null;
 
             return await CreateTokenResponseAsync(user);
         }
@@ -65,7 +62,7 @@ namespace NecesidadesCapacitacion.Services
             var role = await _context.Roles
                     .FirstOrDefaultAsync(r => r.Name == request.RoleName);
 
-            if(role == null)
+            if (role == null)
             {
                 throw new ArgumentException($"El rol {request.RoleName} no existe");
             }
@@ -75,7 +72,7 @@ namespace NecesidadesCapacitacion.Services
                 Name = request.Name,
                 PayRollNumber = request.PayRollNumber,
                 RolId = role.Id,
-                PasswordHash = _passwordHasher.HashPassword(null!, request.Password)
+                PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password)
             };
 
             _context.Users.Add(user);
@@ -100,7 +97,7 @@ namespace NecesidadesCapacitacion.Services
         private async Task<TokenResponseDto> CreateTokenResponseAsync(Users user)
         {
             var accessToken = CreateAccessToken(user);
-            var newRefreshToken = GenerateRefreshToke();
+            var newRefreshToken = GenerateRefreshToken();
 
             user.RefreshToken = newRefreshToken;
             user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(
@@ -114,7 +111,7 @@ namespace NecesidadesCapacitacion.Services
                 AccessToken = accessToken,
                 RefreshToken = newRefreshToken,
                 AccessTokenExpiration = DateTime.UtcNow.AddMinutes(
-                    _configuration.GetValue<int>("Jwt:RefreshTokenExpirationDays", 60)
+                    _configuration.GetValue<int>("Jwt:AccessTokenExpirationMinutes", 60)
                 )
             };
         }
@@ -145,7 +142,7 @@ namespace NecesidadesCapacitacion.Services
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
 
-        private string GenerateRefreshToke()
+        private string GenerateRefreshToken()
         {
             var randomNumber = new byte[32];
             using var rng = RandomNumberGenerator.Create();
