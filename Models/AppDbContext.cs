@@ -86,7 +86,7 @@ public partial class AppDbContext : DbContext
                 .IsUnicode(false)
                 .HasColumnName("positionsOrCollaborator");
             entity.Property(e => e.PresentNeed)
-                .HasMaxLength(250)
+                .HasMaxLength(1000)
                 .IsUnicode(false)
                 .HasColumnName("presentNeed");
             entity.Property(e => e.PriorityId).HasColumnName("priorityId");
