@@ -82,7 +82,7 @@ public partial class AppDbContext : DbContext
                 .IsUnicode(false)
                 .HasColumnName("expectedPerformance");
             entity.Property(e => e.PositionsOrCollaborator)
-                .HasMaxLength(200)
+                .HasMaxLength(1000)
                 .IsUnicode(false)
                 .HasColumnName("positionsOrCollaborator");
             entity.Property(e => e.PresentNeed)
