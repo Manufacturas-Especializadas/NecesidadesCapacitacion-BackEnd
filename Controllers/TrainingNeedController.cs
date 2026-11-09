@@ -16,11 +16,19 @@ namespace NecesidadesCapacitacion.Controllers
     {
         private readonly AppDbContext _context;
         private readonly EmailService _emailService;
+        private readonly TeamsNotificationService _teamsNotificationService;
+        private readonly ILogger<TrainingNeedController> _logger;
 
-        public TrainingNeedController(AppDbContext context, EmailService emailService)
+        public TrainingNeedController(
+            AppDbContext context,
+            EmailService emailService,
+            TeamsNotificationService teamsNotificationService,
+            ILogger<TrainingNeedController> logger)
         {
             _context = context;
             _emailService = emailService;
+            _teamsNotificationService = teamsNotificationService;
+            _logger = logger;
         }
 
         [HttpGet]
@@ -330,11 +338,41 @@ namespace NecesidadesCapacitacion.Controllers
 
                 try
                 {
-                    await SendEmailCapacitacion(newTrainingNeeds);
+                    if (_teamsNotificationService.Enabled)
+                    {
+                        var notification = await _context.TrainingNeeds
+                            .AsNoTracking()
+                            .Where(t => t.Id == newTrainingNeeds.Id)
+                            .Select(t => new
+                            {
+                                t.Id,
+                                t.PresentNeed,
+                                t.SuggestedTrainingCourse,
+                                UserName = t.User != null ? t.User.Name : null,
+                                PriorityName = t.Priority != null ? t.Priority.Name : null
+                            })
+                            .SingleAsync();
+
+                        var text = "Nueva necesidad de capacitación registrada\n\n"
+                            + $"Folio: #{notification.Id}\n"
+                            + $"Solicitante: {notification.UserName ?? "Sin solicitante asignado"}\n"
+                            + $"Necesidad: {notification.PresentNeed ?? "Sin descripción"}\n"
+                            + $"Curso sugerido: {notification.SuggestedTrainingCourse ?? "Sin curso sugerido"}\n"
+                            + $"Prioridad: {notification.PriorityName ?? "Sin prioridad asignada"}";
+
+                        await _teamsNotificationService.SendAsync(notification.Id, text);
+                    }
+                    else
+                    {
+                        await SendEmailCapacitacion(newTrainingNeeds);
+                    }
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"Error enviando correo: {ex.Message}");
+                    // La necesidad ya está guardada; no exponer datos sensibles de la excepción.
+                    _logger.LogError(
+                        "Error preparando o enviando la notificación del folio {TrainingId}. Tipo: {ErrorType}.",
+                        newTrainingNeeds.Id, ex.GetType().Name);
                 }
 
                 return Ok(new

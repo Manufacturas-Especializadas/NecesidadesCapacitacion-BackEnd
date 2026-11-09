@@ -51,6 +51,18 @@ builder.Services.AddSwaggerGen(c =>
 builder.Services.AddScoped<AuthService>();
 builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
 builder.Services.AddSingleton<EmailService>();
+builder.Services.Configure<TeamsNotificationsSettings>(builder.Configuration.GetSection("TeamsNotifications"));
+builder.Services.AddHttpClient(TeamsNotificationService.HttpClientName, client =>
+{
+    client.Timeout = TimeSpan.FromSeconds(10);
+})
+    // Evitar que los logs HTTP incluyan la URL firmada del webhook.
+    .RemoveAllLoggers()
+    .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
+    {
+        AllowAutoRedirect = false
+    });
+builder.Services.AddScoped<TeamsNotificationService>();
 
 builder.Services.AddAuthentication("Bearer")
     .AddJwtBearer("Bearer", options =>
