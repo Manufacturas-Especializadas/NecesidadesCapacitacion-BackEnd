@@ -141,6 +141,7 @@ namespace NecesidadesCapacitacion.Controllers
                             t.QualityObjective,
                             t.CurrentPerformance,
                             t.ExpectedPerformance,
+                            t.RegistrationDate,
                             Priority = t.Priority!.Name ?? "Sin prioridad asignada",
                             Category = t.Category!.Name ?? "Sin catagoría asignada",
                             Status = t.Status!.Name ?? "Pendiente",

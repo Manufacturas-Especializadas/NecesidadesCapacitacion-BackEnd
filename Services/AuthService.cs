@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using NecesidadesCapacitacion.Dtos;
 using NecesidadesCapacitacion.Models;
@@ -54,6 +54,12 @@ namespace NecesidadesCapacitacion.Services
 
         public async Task<Users?> RegisterAsync(RegisterRequestDto request)
         {
+            var initialPassword = request.PayRollNumber.ToString(System.Globalization.CultureInfo.InvariantCulture);
+            if (request.Password != initialPassword)
+            {
+                throw new ArgumentException("La contraseña inicial debe coincidir exactamente con el número de nómina.");
+            }
+
             if (await _context.Users.AnyAsync(u => u.PayRollNumber == request.PayRollNumber))
             {
                 return null;
@@ -72,7 +78,7 @@ namespace NecesidadesCapacitacion.Services
                 Name = request.Name,
                 PayRollNumber = request.PayRollNumber,
                 RolId = role.Id,
-                PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password)
+                PasswordHash = BCrypt.Net.BCrypt.HashPassword(initialPassword)
             };
 
             _context.Users.Add(user);
